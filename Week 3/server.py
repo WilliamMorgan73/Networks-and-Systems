@@ -1,9 +1,12 @@
 import socket
 
+# Define a simple password for authentication
+SERVER_PASSWORD = "securepassword123"
+
 def start_server():
     serverPort = 8080
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serverSocket.bind(("", serverPort))
+    serverSocket.bind(("localhost", serverPort))
     serverSocket.listen(1)  # Listen for incoming connections (1 client at a time)
     print("The server is ready to receive")
 
@@ -12,7 +15,18 @@ def start_server():
         connectionSocket, clientAddress = serverSocket.accept()
         print(f"Connected to {clientAddress}")
         
-        # Handle multiple messages from the client
+        # Authentication step
+        password = connectionSocket.recv(1024).decode()
+        if password != SERVER_PASSWORD:
+            print("Authentication failed.")
+            connectionSocket.send("Authentication failed".encode())
+            connectionSocket.close()
+            continue
+        else:
+            print("Client authenticated successfully.")
+            connectionSocket.send("Authentication successful".encode())
+
+        # Handle multiple messages from the client after authentication
         while True:
             message = connectionSocket.recv(1024).decode()
             if not message or message.lower() == "exit":

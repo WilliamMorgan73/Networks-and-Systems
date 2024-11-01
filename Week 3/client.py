@@ -7,8 +7,21 @@ def start_client():
     
     try:
         clientSocket.connect((serverName, serverPort))
-        print("Connected to server. Type 'exit' to stop.")
-
+        
+        # Send password for authentication
+        password = input("Enter server password: ")
+        clientSocket.send(password.encode())
+        
+        # Receive authentication response
+        auth_response = clientSocket.recv(1024).decode()
+        if auth_response != "Authentication successful":
+            print(auth_response)
+            clientSocket.close()
+            return  # Exit if authentication fails
+        else:
+            print("Authenticated successfully. Type 'exit' to stop.")
+        
+        # Main messaging loop
         while True:
             message = input("Enter a message: ")
             if message.lower() == "exit":  # User chooses to stop messaging
