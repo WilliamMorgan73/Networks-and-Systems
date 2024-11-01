@@ -8,18 +8,18 @@ def start_client():
     try:
         clientSocket.connect((serverName, serverPort))
         
-        # Send password for authentication
-        password = input("Enter server password: ")
-        clientSocket.send(password.encode())
+        # Send client ID for authentication
+        client_id = input("Enter your client ID: ")
+        clientSocket.send(client_id.encode())
         
-        # Receive authentication response
+        # Receive response from server regarding client ID
         auth_response = clientSocket.recv(1024).decode()
-        if auth_response != "Authentication successful":
+        if auth_response != "Client ID accepted":
             print(auth_response)
             clientSocket.close()
-            return  # Exit if authentication fails
+            return  # Exit if client ID is invalid
         else:
-            print("Authenticated successfully. Type 'exit' to stop.")
+            print("Client ID accepted. Type 'exit' to stop.")
         
         # Main messaging loop
         while True:
@@ -29,8 +29,13 @@ def start_client():
                 print("Closing connection.")
                 break
             clientSocket.send(message.encode())
-            modifiedMessage = clientSocket.recv(1024).decode()
-            print("From Server:", modifiedMessage)
+            server_response = clientSocket.recv(1024).decode()
+            print("From Server:", server_response)
+
+            # Check if the server response indicates a limit reached
+            if "Message limit reached" in server_response:
+                print("Server has restricted further messages.")
+                break
             
     except Exception as e:
         print("Error connecting to server:", e)
